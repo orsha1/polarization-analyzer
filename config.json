@@ -1,0 +1,6 @@
+{
+    "type" : "vasp",
+    "name" : "bto",
+    "path" : "./bto.vasp",
+    "save_pbc_vasp": true
+}
