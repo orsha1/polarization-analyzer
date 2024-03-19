@@ -1,4 +1,4 @@
-<h1>Perovskite Oxide Polarization Calculation from POSCAR input file.<\h1>
+#h Perovskite Oxide Polarization Calculation from POSCAR input file
 
 Adjust parameters in config.json according to: 
 
