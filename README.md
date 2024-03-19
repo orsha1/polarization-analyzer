@@ -30,7 +30,7 @@ Ensure you have the following Python packages installed:
 -   `tabulate`
 
 Install them using pip:
-pip install numpy scipy ase pandas tabulate
+`pip install numpy scipy ase pandas tabulate`
 
 Usage
 -----
