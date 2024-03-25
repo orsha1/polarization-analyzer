@@ -4,6 +4,7 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from ase import Atoms
 from ase.io.vasp import read_vasp, write_vasp
+from ase.io.espresso import read_espresso_in
 import datetime
 import pandas as pd
 from tabulate import tabulate
@@ -213,6 +214,8 @@ class Structure:
 # %%
 if config["type"] == "vasp":
     obj = read_vasp(config["path"])
+elif config["type"] == "qe":
+    obj = read_espresso_in(config["path"])
 
 struct = Structure(obj, config)
 struct.get_pbc()
