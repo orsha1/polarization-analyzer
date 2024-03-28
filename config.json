@@ -1,6 +1,6 @@
 {
-    "type" : "vasp",
-    "name" : "bto",
-    "path" : "./bto.vasp",
+    "type" : "qe",
+    "name" : "pmw-afe",
+    "path" : "./pmw-afe-rlx.in",
     "save_pbc_vasp": true
 }
