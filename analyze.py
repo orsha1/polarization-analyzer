@@ -4,8 +4,8 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from ase import Atoms
 from ase.io.vasp import read_vasp, write_vasp
+from ase.io.espresso import read_espresso_in
 import datetime
-import pickle
 import pandas as pd
 from tabulate import tabulate
 import pprint
@@ -31,8 +31,11 @@ def pbc(positions, cell, nat):
     for i_x in range(-1, 2):
         for i_y in range(-1, 2):
             for i_z in range(-1, 2):
+                lp = cell.copy()
+                lp *= np.array([i_x, i_y, i_z])[:, np.newaxis]
+                disp_vec = lp.sum(axis=0)
                 positions_pbc[nat * k : nat * (k + 1), 1:4] = i_x, i_y, i_z
-                positions_pbc[nat * k : nat * (k + 1), 4:] = positions + np.dot(cell, [i_x, i_y, i_z])
+                positions_pbc[nat * k : nat * (k + 1), 4:] = positions + disp_vec
                 k += 1
 
     positions_pbc[:, 0] = np.tile(np.arange(nat), 27)
@@ -211,6 +214,8 @@ class Structure:
 # %%
 if config["type"] == "vasp":
     obj = read_vasp(config["path"])
+elif config["type"] == "qe":
+    obj = read_espresso_in(config["path"])
 
 struct = Structure(obj, config)
 struct.get_pbc()
@@ -221,9 +226,3 @@ struct.get_df()
 struct.print_log()
 
 metadata = {"obj": obj, "obj_pbc": struct.obj_pbc, "site_data": struct.disp_pol_alpha, "df": struct.df, "df_alpha": struct.df_alpha, "df_alpha": struct.df_alpha, "df_p": struct.df_p, "df_d": struct.df_d, "P": struct.P, "P_tot": struct.P_tot, "D": struct.D, "D_tot": struct.D_tot, "alphas": struct.alphas, "alphas_stat": struct.alphas_stat}
-
-# %%
-# with open(config["name"]+".pkl" ,'wb') as f:
-#    pickle.dump(metadata, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-# %%

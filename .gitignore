@@ -1,2 +1,5 @@
 .venv
 .vscode
+input_coordinates.csv
+input_lattice_parameters.csv
+.gitignore
