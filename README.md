@@ -13,9 +13,9 @@ To use this tool, provide the configuration in a JSON file named `config.json`. 
 
 {  "type":  "vasp",  "path":  "path/to/POSCAR.vasp",  "name":  "perovskite",  "save_pbc_vasp":  true  }
 
--   `"type"`: Specifies the type of input file. Currently supports only `"vasp"` POSCAR format.
--   `"path"`: Path to the VASP POSCAR file.
--   `"name"`: Name for the output files.
+-   `"type"`: Specifies the type of input file. Currently supports only `"vasp"` POSCAR format and `"QE"` input file.
+-   `"path"`: Path to the input file.
+-   `"name"`: Name to be used for the output files.
 -   `"save_pbc_vasp"`: Whether to save the supercell with periodic boundary conditions (PBC).
 
 Required Packages
