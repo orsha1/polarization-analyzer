@@ -1,6 +1,7 @@
 {
-    "type" : "qe",
-    "name" : "pmw-afe",
-    "path" : "./pmw-afe-rlx.in",
-    "save_pbc_vasp": true
+    "type" : "qe_out",
+    "name" : "pzt",
+    "path" : "./relax.out",
+    "save_pbc_vasp": false,
+    "read_all_steps": true
 }
