@@ -13,10 +13,11 @@ To use this tool, provide the configuration in a JSON file named `config.json`. 
 
 {  "type":  "vasp",  "path":  "path/to/POSCAR.vasp",  "name":  "perovskite",  "save_pbc_vasp":  true  }
 
--   `"type"`: Specifies the type of input file. Currently supports only `"vasp"` POSCAR format and `"QE"` input file.
+-   `"type"`: Specifies the type of input file. Currently supports only `"vasp"` POSCAR format, `"QE"` input file, and `"QE"` output file.
 -   `"path"`: Path to the input file.
 -   `"name"`: Name to be used for the output files.
 -   `"save_pbc_vasp"`: Whether to save the supercell with periodic boundary conditions (PBC).
+-   `"read_all_steps"`: Whether to read all steps of QE output. Will create a folder containing an output for each step in the relaxation.
 
 Required Packages
 -----------------
