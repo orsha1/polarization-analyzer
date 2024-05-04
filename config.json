@@ -3,5 +3,5 @@
     "name" : "pzt",
     "path" : "./relax.out",
     "save_pbc_vasp": false,
-    "read_all_steps": true
+    "read_all_steps": false
 }

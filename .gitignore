@@ -3,3 +3,9 @@
 input_coordinates.csv
 input_lattice_parameters.csv
 .gitignore
+pzt.out
+pzt.vasp
+relax.out
+bto.vasp
+bto.out
+bto_pbc.vasp

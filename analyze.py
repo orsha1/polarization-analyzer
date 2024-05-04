@@ -246,7 +246,7 @@ elif config["type"] == "qe_out":
 
 # %%
 if obj[1] == None:
-    struct = Structure(obj, config)
+    struct = Structure(obj[0], config)
     struct.get_pbc()
     if config["save_pbc_vasp"]:
         write_vasp(config["name"] + "_pbc.vasp", struct.obj_pbc, sort=True)
