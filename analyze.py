@@ -4,16 +4,26 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from ase import Atoms
 from ase.io.vasp import read_vasp, write_vasp
-from ase.io.espresso import read_espresso_in
+from ase.io.espresso import read_espresso_in, read_espresso_out
 import datetime
 import pandas as pd
 from tabulate import tabulate
 import pprint
+from ase.units import create_units
+
+units = create_units("2006")
+
+import os
 
 # %%
-with open("./config.json", "r") as file:
-    config = json.load(file)
+config = {"type": "vasp", "name": "structure", "path": "structure.vasp", "save_pbc_vasp": False, "read_all_steps": False}
 
+with open("./config.json", "r") as file:
+    config_load = json.load(file)
+
+config = {key: config_load.get(key, value) for key, value in config.items()}
+
+# %%
 with open("./born_effective_charges.json", "r") as file:
     zstars = json.load(file)
 
@@ -212,17 +222,61 @@ class Structure:
 
 
 # %%
+def parse_espresso_out(path, read_all):
+    with open(path, "r") as f:
+        out = read_espresso_out(f, index=slice(None))
+        objects = []
+        for item in out:
+            objects.append(item)
+        energies = [x.get_total_energy() for x in objects]
+        idx_min = np.argmin(energies)
+    if read_all:
+        return objects, objects[idx_min]
+    else:
+        return objects[idx_min], None
+
+
+# %%
 if config["type"] == "vasp":
     obj = read_vasp(config["path"])
-elif config["type"] == "qe":
+elif config["type"] == "qe_in":
     obj = read_espresso_in(config["path"])
+elif config["type"] == "qe_out":
+    obj = parse_espresso_out(config["path"], config["read_all_steps"])
 
-struct = Structure(obj, config)
-struct.get_pbc()
-if config["save_pbc_vasp"]:
-    write_vasp(config["path"].replace(".vasp", "_pbc.vasp"), struct.obj_pbc, sort=True)
-struct.get_disp_pol_alpha()
-struct.get_df()
-struct.print_log()
+# %%
+if obj[1] == None:
+    struct = Structure(obj, config)
+    struct.get_pbc()
+    if config["save_pbc_vasp"]:
+        write_vasp(config["name"] + "_pbc.vasp", struct.obj_pbc, sort=True)
+    if config["type"] != "vasp":
+        write_vasp(config["name"] + ".vasp", struct.obj, sort=True)
+    struct.get_disp_pol_alpha()
+    struct.get_df()
+    struct.print_log()
+else:
+    folder_name = config["name"]
+    os.makedirs(folder_name, exist_ok=True)  # Create folder if it doesn't exist
+    for i, item in enumerate(obj[0]):
+        struct = Structure(item, config)
+        config["outname"] = f"{folder_name}/{config['name']}_{i+1}.out"
+        struct.get_pbc()
+        if config["save_pbc_vasp"]:
+            write_vasp(f"{folder_name}/{config['name']}_pbc_{i+1}.vasp", struct.obj_pbc, sort=True)
+        if config["type"] != "vasp":
+            write_vasp(f"{folder_name}/{config['name']}_{i+1}.vasp", struct.obj, sort=True)
+        struct.get_disp_pol_alpha()
+        struct.get_df()
+        struct.print_log()
 
-metadata = {"obj": obj, "obj_pbc": struct.obj_pbc, "site_data": struct.disp_pol_alpha, "df": struct.df, "df_alpha": struct.df_alpha, "df_alpha": struct.df_alpha, "df_p": struct.df_p, "df_d": struct.df_d, "P": struct.P, "P_tot": struct.P_tot, "D": struct.D, "D_tot": struct.D_tot, "alphas": struct.alphas, "alphas_stat": struct.alphas_stat}
+    struct = Structure(obj[1], config)
+    config["outname"] = f"{folder_name}/{config['name']}_min.out"
+    struct.get_pbc()
+    if config["save_pbc_vasp"]:
+        write_vasp(f"{folder_name}/{config['name']}_pbc_min.vasp", struct.obj_pbc, sort=True)
+    if config["type"] != "vasp":
+        write_vasp(f"{folder_name}/{config['name']}_min.vasp", struct.obj, sort=True)
+    struct.get_disp_pol_alpha()
+    struct.get_df()
+    struct.print_log()
