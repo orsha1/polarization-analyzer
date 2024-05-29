@@ -16,7 +16,15 @@ units = create_units("2006")
 import os
 
 # %%
-config = {"type": "vasp", "name": "structure", "path": "structure.vasp", "save_pbc_vasp": False, "read_all_steps": False}
+config = {
+    "type": "vasp",
+    "name": "structure",
+    "path": "structure.vasp",
+    "save_pbc_vasp": False,
+    "read_all_steps": False,
+    "take_last": True,
+}
+
 
 with open("./config.json", "r") as file:
     config_load = json.load(file)
@@ -222,61 +230,69 @@ class Structure:
 
 
 # %%
-def parse_espresso_out(path, read_all):
+def parse_espresso_out(path, read_all, take_last=False):
     with open(path, "r") as f:
         out = read_espresso_out(f, index=slice(None))
         objects = []
         for item in out:
             objects.append(item)
-        energies = [x.get_total_energy() for x in objects]
+        energies = [np.round(x.get_total_energy() / units["Ry"], 10) for x in objects]
         idx_min = np.argmin(energies)
-    if read_all:
-        return objects, objects[idx_min]
+
+    nat = len(objects[0].get_scaled_positions())
+    dE = 1000 * ((energies[-1] - energies[idx_min]) * units["Ry"]) / nat  # E in meV/atom
+
+    if dE < 1e-3:
+        idx_min = len(energies) - 1
     else:
-        return objects[idx_min], None
+        print(f"Using lowest energy structure found on iter {idx_min}. To avoid, set take_last=True option")
+    if take_last:
+        idx_min = len(energies) - 1
+
+    if read_all:
+        return objects, objects[idx_min], np.argmin(energies)
+
+    else:
+        return objects[idx_min]
+
+
+# %%
+def analyze(obj_t, config, outname=None):
+    struct = Structure(obj_t, config)
+    struct.get_pbc()
+
+    if outname != None:
+        config["outname"] = f"{outname}.out"
+        if config["save_pbc_vasp"]:
+            write_vasp(f"{outname}_pbc.vasp", struct.obj_pbc, sort=True)
+        if config["type"] != "vasp":
+            write_vasp(f"{outname}.vasp", struct.obj, sort=True)
+    else:
+        if config["save_pbc_vasp"]:
+            write_vasp(f"{config['name']}_pbc.vasp", struct.obj_pbc, sort=True)
+        if config["type"] != "vasp":
+            write_vasp(f"{config['name']}.vasp", struct.obj, sort=True)
+
+    struct.get_disp_pol_alpha()
+    struct.get_df()
+    struct.print_log()
 
 
 # %%
 if config["type"] == "vasp":
     obj = read_vasp(config["path"])
+    analyze(obj, config)
+
 elif config["type"] == "qe_in":
     obj = read_espresso_in(config["path"])
+    analyze(obj, config)
 elif config["type"] == "qe_out":
-    obj = parse_espresso_out(config["path"], config["read_all_steps"])
-
-# %%
-if obj[1] == None:
-    struct = Structure(obj[0], config)
-    struct.get_pbc()
-    if config["save_pbc_vasp"]:
-        write_vasp(config["name"] + "_pbc.vasp", struct.obj_pbc, sort=True)
-    if config["type"] != "vasp":
-        write_vasp(config["name"] + ".vasp", struct.obj, sort=True)
-    struct.get_disp_pol_alpha()
-    struct.get_df()
-    struct.print_log()
-else:
-    folder_name = config["name"]
-    os.makedirs(folder_name, exist_ok=True)  # Create folder if it doesn't exist
-    for i, item in enumerate(obj[0]):
-        struct = Structure(item, config)
-        config["outname"] = f"{folder_name}/{config['name']}_{i+1}.out"
-        struct.get_pbc()
-        if config["save_pbc_vasp"]:
-            write_vasp(f"{folder_name}/{config['name']}_pbc_{i+1}.vasp", struct.obj_pbc, sort=True)
-        if config["type"] != "vasp":
-            write_vasp(f"{folder_name}/{config['name']}_{i+1}.vasp", struct.obj, sort=True)
-        struct.get_disp_pol_alpha()
-        struct.get_df()
-        struct.print_log()
-
-    struct = Structure(obj[1], config)
-    config["outname"] = f"{folder_name}/{config['name']}_min.out"
-    struct.get_pbc()
-    if config["save_pbc_vasp"]:
-        write_vasp(f"{folder_name}/{config['name']}_pbc_min.vasp", struct.obj_pbc, sort=True)
-    if config["type"] != "vasp":
-        write_vasp(f"{folder_name}/{config['name']}_min.vasp", struct.obj, sort=True)
-    struct.get_disp_pol_alpha()
-    struct.get_df()
-    struct.print_log()
+    obj = parse_espresso_out(config["path"], config["read_all_steps"], take_last=config["take_last"])
+    if config["read_all_steps"]:
+        folder_name = config["name"]
+        os.makedirs(folder_name, exist_ok=True)
+        for i, item in enumerate(obj[0]):
+            outname = f"{folder_name}/{config['name']}_{i+1}"
+            if i == obj[2]:
+                outname = outname + "_min"
+            analyze(item, config, outname=outname)

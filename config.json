@@ -1,7 +1,7 @@
 {
     "type" : "qe_out",
-    "name" : "pzt",
-    "path" : "./relax.out",
-    "save_pbc_vasp": false,
-    "read_all_steps": false
+    "name" : "test",
+    "path" : "./relax1.out",
+    "save_pbc_vasp": true,
+    "read_all_steps": true
 }
