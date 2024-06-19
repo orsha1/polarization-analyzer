@@ -1,7 +1,7 @@
 {
-    "type" : "qe_out",
-    "name" : "test",
-    "path" : "./relax1.out",
+    "type" : "vasp",
+    "name" : "pmw_cubic_f",
+    "path" : "./pmw_cubic_f.vasp",
     "save_pbc_vasp": true,
     "read_all_steps": true
 }

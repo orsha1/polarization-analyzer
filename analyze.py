@@ -10,10 +10,10 @@ import pandas as pd
 from tabulate import tabulate
 import pprint
 from ase.units import create_units
+import os
 
 units = create_units("2006")
 
-import os
 
 # %%
 config = {
@@ -230,7 +230,7 @@ class Structure:
 
 
 # %%
-def parse_espresso_out(path, read_all, take_last=False):
+def parse_espresso_out(path, read_all, take_last=True):
     with open(path, "r") as f:
         out = read_espresso_out(f, index=slice(None))
         objects = []
@@ -245,7 +245,7 @@ def parse_espresso_out(path, read_all, take_last=False):
     if dE < 1e-3:
         idx_min = len(energies) - 1
     else:
-        print(f"Using lowest energy structure found on iter {idx_min}. To avoid, set take_last=True option")
+        print(f"Found lowest energy structure found on iter {idx_min}. To use it, set take_last=False option")
     if take_last:
         idx_min = len(energies) - 1
 
